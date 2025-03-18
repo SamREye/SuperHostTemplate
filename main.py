@@ -112,12 +112,11 @@ def read_root():
 
 @app.get("/page/{path:path}", response_class=HTMLResponse)
 async def get_page(path: str):
-    print(path)
     page = db.pages.find_one({"path": path})
-    print(page)
     if not page:
         raise HTTPException(status_code=404, detail="Page not found")
-
-    template = templates.get_template("base.html")
-    return template.render(title=page.get("title", "Page"),
-                           content=page.get("content", {}))
+    template_file = f"pages/{page['template']}"
+    template = templates.get_template(template_file)
+    return template.render(title=page["title"],
+                           description=page["description"],
+                           content=markdown2.markdown(page["content"]))
