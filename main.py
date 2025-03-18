@@ -175,28 +175,31 @@ async def upload_from_url(upload: UrlUpload):
     if not slug:
         raise HTTPException(status_code=400, detail="Slug is required")
     import requests
-    
+
     try:
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         response = requests.get(url, headers=headers, timeout=10, verify=False)
         response.raise_for_status()
 
         filename = f"{slug}.webp"
         content_type = response.headers.get('content-type', '')
-        
+
         if not content_type.startswith('image/'):
-            raise HTTPException(status_code=400, detail="URL does not point to an image")
-            
+            raise HTTPException(status_code=400,
+                                detail="URL does not point to an image")
+
         file_id = fs.put(response.content, filename=filename)
         if not file_id:
             raise HTTPException(status_code=500, detail="Failed to save file")
-            
+
         return {"filename": filename, "id": str(file_id)}
-            
+
     except requests.RequestException as e:
-        raise HTTPException(status_code=400, detail=f"Failed to fetch image: {str(e)}")
+        raise HTTPException(status_code=400,
+                            detail=f"Failed to fetch image: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
@@ -209,7 +212,7 @@ async def delete_media(file_id: str, authorized: bool = Depends(verify_admin)):
     return {"status": "success"}
 
 
-@app.get("/media/{filename}")
+@app.get("/media/{filename:path}")
 async def get_media(filename: str):
     from urllib.parse import unquote
     from fastapi.responses import Response
@@ -232,6 +235,7 @@ async def get_media(filename: str):
 async def generate_image(prompt: dict):
     from prompting import generate_image
     return generate_image(prompt["prompt"])
+
 
 @app.get("/")
 def read_root():
