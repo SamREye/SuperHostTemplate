@@ -149,6 +149,42 @@ function handleSubmit(form) {
     return true;
 }
 
+async function generateEditImage() {
+    const prompt = document.getElementById('editImagePrompt').value;
+    if (!prompt) {
+        alert('Please fill in the prompt');
+        return;
+    }
+
+    const btn = document.getElementById('editGenerateBtn');
+    const spinner = document.getElementById('editGenerateSpinner');
+    const preview = document.getElementById('editImagePreview');
+    const imageField = document.getElementById('editImageField');
+
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+
+    try {
+        const response = await fetch('/admin/generate_image', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({prompt})
+        });
+        const data = await response.json();
+        
+        preview.innerHTML = `
+            <img src="${data.img_url}" class="img-fluid">
+            <input type="hidden" name="pending_image_url" value="${data.img_url}">
+        `;
+    } catch (error) {
+        console.error('Error:', error);
+        preview.innerHTML = '<div class="alert alert-danger">Failed to generate image</div>';
+    } finally {
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+    }
+}
+
 async function editPage(id) {
     const response = await fetch(`/admin/pages/${id}`);
     const page = await response.json();
@@ -163,12 +199,31 @@ async function editPage(id) {
         .then(fields => {
             fields.forEach(field => {
                 const value = page.content[field] || '';
-                container.innerHTML += `
-                    <div class="mb-3">
-                        <label class="form-label">${field}</label>
-                        <input type="text" name="field_${field}" value="${value}" class="form-control" required>
-                    </div>
-                `;
+                if (field === 'image') {
+                    container.innerHTML += `
+                        <div class="mb-3">
+                            <label class="form-label">Image Prompt</label>
+                            <div class="input-group">
+                                <textarea class="form-control" id="editImagePrompt" rows="3"></textarea>
+                                <button type="button" class="btn btn-primary" onclick="generateEditImage()" id="editGenerateBtn">
+                                    <span class="spinner-border spinner-border-sm d-none" id="editGenerateSpinner"></span>
+                                    Generate
+                                </button>
+                            </div>
+                            <div id="editImagePreview" class="mt-2">
+                                ${value ? `<img src="${value}" class="img-fluid">` : ''}
+                            </div>
+                            <input type="hidden" name="field_image" id="editImageField" value="${value}" required>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML += `
+                        <div class="mb-3">
+                            <label class="form-label">${field}</label>
+                            <input type="text" name="field_${field}" value="${value}" class="form-control" required>
+                        </div>
+                    `;
+                }
             });
         });
 
