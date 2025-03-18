@@ -6,7 +6,7 @@ from pymongo import MongoClient
 
 app = FastAPI()
 client = MongoClient(os.getenv("MONGO_URL"))
-db = client.get_default_database()
+db = client[os.getenv("DOMAIN_NAME", "default_db")]
 
 @app.get("/")
 def read_root():
