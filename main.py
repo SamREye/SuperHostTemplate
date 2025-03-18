@@ -105,9 +105,9 @@ async def get_template_fields(template: str,
     try:
         with open(f"templates/pages/{template}", "r") as f:
             content = f.read()
-            # Find all {{ VAR }} patterns
+            # Find all {{ VAR }} patterns, including those with filters
             import re
-            fields = re.findall(r'{{\s*(\w+)\s*}}', content)
+            fields = re.findall(r'{{\s*(\w+)(?:\s*\|[^}]+)?\s*}}', content)
             return list(set(fields))  # Remove duplicates
     except:
         raise HTTPException(status_code=404)
