@@ -348,7 +348,11 @@ async def complement_article(content: dict, authorized: bool = Depends(verify_ad
 @app.get("/")
 async def read_root():
     template = templates.get_template("index.html")
-    return HTMLResponse(template.render(title=f"{domain} - Home"))
+    return HTMLResponse(template.render(
+        title=f"{domain} - Home",
+        description="Welcome to our website",
+        domain=domain
+    ))
 
 
 @app.get("/page/{path:path}", response_class=HTMLResponse)
