@@ -21,6 +21,7 @@ domain = os.getenv("DOMAIN_NAME")
 db_name = domain.replace('.', '-')
 db = client[db_name]
 
+
 @app.get("/robots.txt")
 async def get_robots():
     from fastapi.responses import Response
@@ -28,24 +29,26 @@ async def get_robots():
         content = f.read().format(domain=domain)
     return Response(content, media_type="text/plain")
 
+
 @app.get("/sitemap.xml")
 async def get_sitemap():
     from fastapi.responses import Response
     pages = list(db.pages.find())
-    
+
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    
+
     # Add home page
     xml += f'  <url>\n    <loc>https://{domain}/</loc>\n  </url>\n'
-    
+
     # Add all pages
     for page in pages:
         xml += f'  <url>\n    <loc>https://{domain}/page/{page["path"]}</loc>\n  </url>\n'
-    
+
     xml += '</urlset>'
-    
+
     return Response(content=xml, media_type="application/xml")
+
 
 # Setup Jinja2 templates
 templates = Environment(loader=FileSystemLoader("templates"))
@@ -132,26 +135,27 @@ async def create_page(request: Request,
     form = await request.form()
     content = {}
     pending_image_url = None
-    
+
     for key, value in form.items():
         if key == "pending_image_url":
             pending_image_url = value
         elif key.startswith("field_"):
             field_name = key[6:]  # Remove 'field_' prefix
             content[field_name] = value
-            
+
     # Handle pending image upload if exists
     if pending_image_url:
         try:
             response = requests.get(pending_image_url, verify=False)
             response.raise_for_status()
-            
+
             filename = f"{path}.webp"
             file_id = fs.put(response.content, filename=filename)
             if file_id:
                 content['image'] = f"/media/{filename}"
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to save image: {str(e)}")
+            raise HTTPException(status_code=400,
+                                detail=f"Failed to save image: {str(e)}")
 
     db.pages.insert_one({
         "path": path,
@@ -173,7 +177,7 @@ async def update_page(request: Request,
     form = await request.form()
     content = {}
     pending_image_url = None
-    
+
     for key, value in form.items():
         if key == "pending_image_url":
             pending_image_url = value
@@ -186,19 +190,20 @@ async def update_page(request: Request,
         try:
             response = requests.get(pending_image_url, verify=False)
             response.raise_for_status()
-            
+
             # Delete existing image if it exists
             page = db.pages.find_one({"_id": ObjectId(id)})
             filename = f"{page['path']}.webp"
             existing_file = fs.find_one({"filename": filename})
             if existing_file:
                 fs.delete(existing_file._id)
-            
+
             file_id = fs.put(response.content, filename=filename)
             if file_id:
                 content['image'] = f"/media/{filename}"
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to save image: {str(e)}")
+            raise HTTPException(status_code=400,
+                                detail=f"Failed to save image: {str(e)}")
 
     from bson.objectid import ObjectId
     db.pages.update_one({"_id": ObjectId(id)}, {"$set": {"content": content}})
@@ -314,21 +319,8 @@ async def generate_image(prompt: dict):
 
 @app.get("/")
 async def read_root():
-    page = db.pages.find_one({"path": "index"})
-    if not page:
-        # Create default home page if it doesn't exist
-        page = {
-            "path": "index",
-            "template": "index.html",
-            "content": {
-                "title": "Welcome",
-                "description": "Welcome to my website",
-                "content": "Welcome to my website!"
-            }
-        }
-        db.pages.insert_one(page)
-    template = templates.get_template(f"pages/{page['template']}")
-    return HTMLResponse(template.render(**page["content"]))
+    template = templates.get_template("index.html")
+    return HTMLResponse(template.render(title=f"{domain} - Home"))
 
 
 @app.get("/page/{path:path}", response_class=HTMLResponse)
