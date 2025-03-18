@@ -158,6 +158,15 @@ async def update_page(request: Request,
             response = requests.get(pending_image_url, verify=False)
             response.raise_for_status()
             
+            # Delete existing image if it exists
+            from bson.objectid import ObjectId
+            page = db.pages.find_one({"_id": ObjectId(id)})
+            if page and page.get("content", {}).get("image"):
+                old_filename = page["content"]["image"].split("/")[-1]
+                existing_file = fs.find_one({"filename": old_filename})
+                if existing_file:
+                    fs.delete(existing_file._id)
+            
             filename = f"{content.get('path', id)}.webp"
             file_id = fs.put(response.content, filename=filename)
             if file_id:
@@ -167,6 +176,7 @@ async def update_page(request: Request,
 
     from bson.objectid import ObjectId
     db.pages.update_one({"_id": ObjectId(id)}, {"$set": {"content": content}})
+    return RedirectResponse(url="/admin/pages", status_code=302)
     return RedirectResponse(url="/admin/pages", status_code=302)
 
 
