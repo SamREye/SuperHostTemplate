@@ -5,11 +5,13 @@ from pydantic import BaseModel
 openai_client = openai.Client(api_key=os.environ['OPENAI_API_KEY'])
 COPYWRITER = "gpt-4o"
 
+
 class ArticleDraft(BaseModel):
-  title: str
-  meta_description: str
-  content_markdown: str
-  image_prompt: str
+    title: str
+    meta_description: str
+    content_markdown: str
+    image_prompt: str
+
 
 def complement_article(content: str) -> str:
     base_prompt = {
