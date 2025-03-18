@@ -14,6 +14,7 @@
         <p>Template: {{ page.template }}</p>
         <button class="btn btn-sm btn-primary" onclick="editPage('{{ page._id }}')">✏️ Edit</button>
         <button class="btn btn-sm btn-danger">🗑️ Delete</button>
+        <a href="/page/{{ page.path }}" target="_blank" class="btn btn-sm btn-info">👁️ View</a>
     </div>
     {% endfor %}
 </div>
