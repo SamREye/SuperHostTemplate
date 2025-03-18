@@ -138,12 +138,9 @@ async function generateImage() {
             <img src="${data.img_url}" class="img-fluid">
             <input type="hidden" name="pending_image_url" value="${data.img_url}">
         `;
-            imageField.value = `/media/${uploadData.filename}`;
-        } else {
-            throw new Error('No filename returned from upload');
-        }
     } catch (error) {
         console.error('Error:', error);
+        preview.innerHTML = '<div class="alert alert-danger">Failed to generate image</div>';
         preview.innerHTML = '<div class="alert alert-danger">Failed to generate image</div>';
     } finally {
         btn.disabled = false;
