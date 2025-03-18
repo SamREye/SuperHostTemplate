@@ -5,18 +5,40 @@
 
 {% block content %}
 <h1>Manage Media</h1>
-<form method="POST" enctype="multipart/form-data" class="mb-4">
+<form method="POST" enctype="multipart/form-data" class="mb-4" id="uploadForm">
     <div class="input-group">
         <input type="file" name="file" class="form-control" required>
+        <input type="hidden" name="overwrite" value="false">
         <button type="submit" class="btn btn-success">Upload</button>
     </div>
 </form>
+
+<script>
+document.getElementById('uploadForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const response = await fetch('/admin/media', {
+        method: 'POST',
+        body: new FormData(form)
+    });
+    const result = await response.json().catch(() => null);
+    
+    if (result && result.status === 'confirm_overwrite') {
+        if (confirm(`File "${result.filename}" already exists. Overwrite?`)) {
+            form.elements.overwrite.value = 'true';
+            form.submit();
+        }
+    } else {
+        window.location.reload();
+    }
+};
+</script>
 <div class="list-group">
     {% for file in files %}
     <div class="list-group-item d-flex justify-content-between align-items-center">
         <h5 class="mb-0">{{ file.filename }}</h5>
         <div>
-            <a href="/media/name/{{ file.filename }}" target="_blank" class="btn btn-sm btn-primary me-2">👁️ View</a>
+            <a href="/media/{{ file.filename }}" target="_blank" class="btn btn-sm btn-primary me-2">👁️ View</a>
             <button class="btn btn-sm btn-danger" onclick="deleteFile('{{ file._id }}')">🗑️ Delete</button>
         </div>
     </div>

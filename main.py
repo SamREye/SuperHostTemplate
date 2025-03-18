@@ -141,9 +141,17 @@ async def list_media(authorized: bool = Depends(verify_admin)):
 
 @app.post("/admin/media")
 async def upload_media(authorized: bool = Depends(verify_admin),
-                       file: UploadFile = File(...)):
+                       file: UploadFile = File(...),
+                       overwrite: bool = Form(False)):
     if not authorized:
         return RedirectResponse(url="/login")
+    
+    existing = fs.find_one({"filename": file.filename})
+    if existing and not overwrite:
+        return {"status": "confirm_overwrite", "filename": file.filename}
+        
+    if existing:
+        fs.delete(existing._id)
     file_id = fs.put(file.file, filename=file.filename)
     return RedirectResponse(url="/admin/media", status_code=302)
 
@@ -155,7 +163,7 @@ async def delete_media(file_id: str, authorized: bool = Depends(verify_admin)):
     fs.delete(file_id)
     return {"status": "success"}
 
-@app.get("/media/name/{filename}")
+@app.get("/media/{filename}")
 async def get_media(filename: str):
     from urllib.parse import unquote
     from fastapi.responses import Response
