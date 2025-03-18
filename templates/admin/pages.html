@@ -79,6 +79,14 @@
 </div>
 
 <script>
+// Load fields when page loads if article template is selected
+document.addEventListener('DOMContentLoaded', () => {
+    const templateSelect = document.querySelector('select[name="template"]');
+    if (templateSelect.value === 'article.html') {
+        loadTemplateFields('article.html');
+    }
+});
+
 async function setArticleAttributes() {
     const content = document.querySelector('textarea[name="field_content"]').value;
     if (!content) {
