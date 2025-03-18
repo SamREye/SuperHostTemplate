@@ -73,14 +73,75 @@ async function loadTemplateFields(template) {
     const fields = await response.json();
     const container = document.getElementById('dynamicFields');
     container.innerHTML = '';
+    
     fields.forEach(field => {
-        container.innerHTML += `
-            <div class="mb-3">
-                <label class="form-label">${field}</label>
-                <input type="text" name="field_${field}" class="form-control" required>
-            </div>
-        `;
+        if (field === 'image') {
+            container.innerHTML += `
+                <div class="mb-3">
+                    <label class="form-label">Image Prompt</label>
+                    <div class="input-group">
+                        <textarea class="form-control" id="imagePrompt" rows="3"></textarea>
+                        <button class="btn btn-primary" onclick="generateImage()" id="generateBtn">
+                            <span class="spinner-border spinner-border-sm d-none" id="generateSpinner"></span>
+                            Generate
+                        </button>
+                    </div>
+                    <div id="imagePreview" class="mt-2"></div>
+                    <input type="hidden" name="field_image" id="imageField" required>
+                </div>
+            `;
+        } else {
+            container.innerHTML += `
+                <div class="mb-3">
+                    <label class="form-label">${field}</label>
+                    <input type="text" name="field_${field}" class="form-control" required>
+                </div>
+            `;
+        }
     });
+}
+
+async function generateImage() {
+    const prompt = document.getElementById('imagePrompt').value;
+    if (!prompt) return;
+
+    const btn = document.getElementById('generateBtn');
+    const spinner = document.getElementById('generateSpinner');
+    const preview = document.getElementById('imagePreview');
+    const imageField = document.getElementById('imageField');
+    const path = document.querySelector('input[name="path"]').value;
+
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+
+    try {
+        const response = await fetch('/admin/generate_image', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({prompt})
+        });
+        const data = await response.json();
+        
+        // Upload the generated image
+        const uploadResponse = await fetch('/upload_and_compress_image_from_url', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                url: data.img_url,
+                slug: path
+            })
+        });
+        const uploadData = await uploadResponse.json();
+        
+        preview.innerHTML = `<img src="/media/${uploadData.filename}" class="img-fluid">`;
+        imageField.value = `/media/${uploadData.filename}`;
+    } catch (error) {
+        console.error('Error:', error);
+        preview.innerHTML = '<div class="alert alert-danger">Failed to generate image</div>';
+    } finally {
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+    }
 }
 
 async function editPage(id) {

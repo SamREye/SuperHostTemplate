@@ -231,6 +231,11 @@ async def get_media(filename: str):
     return Response(file.read(), media_type=content_type, headers=headers)
 
 
+@app.post("/admin/generate_image")
+async def generate_image(prompt: dict):
+    from prompting import generate_image
+    return generate_image(prompt["prompt"])
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
