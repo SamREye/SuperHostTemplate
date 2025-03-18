@@ -8,7 +8,7 @@ COPYWRITER = "gpt-4o"
 
 class ArticleDraft(BaseModel):
     title: str
-    meta_description: str
+    description: str
     content_markdown: str
     image_prompt: str
 
