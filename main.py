@@ -198,16 +198,16 @@ async def upload_from_url(upload: UrlUpload):
             import base64
             json_data = shrink_response.json()
             if 'file' in json_data:
-            processed_image = base64.b64decode(json_data['file'])
-            file_id = fs.put(processed_image, filename=filename)
-            if file_id:
-                return {"filename": filename, "id": str(file_id)}
+                processed_image = base64.b64decode(json_data['file'])
+                file_id = fs.put(processed_image, filename=filename)
+                if file_id:
+                    return {"filename": filename, "id": str(file_id)}
+                else:
+                    raise HTTPException(status_code=500, detail="Failed to save file")
             else:
-                raise HTTPException(status_code=500, detail="Failed to save file")
+                raise HTTPException(status_code=500, detail="No 'file' field in JSON response")
         else:
-            raise HTTPException(status_code=500, detail="No 'file' field in JSON response")
-    else:
-        raise HTTPException(status_code=500, detail="Image processing failed")
+            raise HTTPException(status_code=500, detail="Image processing failed")
 
 
 @app.delete("/admin/media/{file_id}")
