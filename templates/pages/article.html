@@ -6,6 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <meta name="description" content="{{ description }}">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "{{ title }}",
+      "description": "{{ description }}",
+      "image": "{{ image }}",
+      "articleBody": "{{ content | striptags }}",
+      "datePublished": "{{ content.created_at if content.created_at else '' }}",
+      "dateModified": "{{ content.updated_at if content.updated_at else '' }}",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://{{ domain }}/page/{{ path }}"
+      }
+    }
+    </script>
 </head>
 <body>
     <main>
