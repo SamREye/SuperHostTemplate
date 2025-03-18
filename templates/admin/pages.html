@@ -68,7 +68,10 @@
                         Saving page...
                     </div>
                     <div id="editDynamicFields"></div>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" class="btn btn-primary" id="editSaveButton">
+                        <span class="spinner-border spinner-border-sm d-none" id="editSaveSpinner"></span>
+                        Save
+                    </button>
                 </form>
             </div>
         </div>
@@ -155,7 +158,9 @@ function handleSubmit(form) {
 
 function handleEditSubmit(form) {
     const spinner = document.getElementById('editSaveSpinner');
+    const button = document.getElementById('editSaveButton');
     spinner.classList.remove('d-none');
+    button.disabled = true;
     return true;
 }
 
