@@ -131,10 +131,11 @@ async function generateImage() {
                 slug: path
             })
         });
-        if (!uploadResponse.ok) {
-            throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
-        }
+        
         const uploadData = await uploadResponse.json();
+        if (!uploadResponse.ok) {
+            throw new Error(uploadData.detail || 'Upload failed');
+        }
         
         if (uploadData && uploadData.filename) {
             preview.innerHTML = `<img src="/media/${uploadData.filename}" class="img-fluid">`;

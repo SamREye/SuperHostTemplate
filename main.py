@@ -175,41 +175,23 @@ async def upload_from_url(upload: UrlUpload):
     if not slug:
         raise HTTPException(status_code=400, detail="Slug is required")
     import requests
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise HTTPException(status_code=400, detail="Failed to fetch image")
-
-    # Use the slug from the UrlUpload object
-    slug = upload.slug
-    if not slug:
-        raise HTTPException(status_code=400, detail="Slug is required")
-
-    filename = f"{slug}.webp"
-
-    # Process image through WebP shrinker
-    files = {'image': (filename, response.content, 'image/webp')}
-    data = {'quality': '70', 'width': '800', 'height': '800'}
-
+    
     try:
-        shrink_response = requests.post(
-            'https://webp-shrinker.sambourque.com/process', files=files, data=data)
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Failed to fetch image")
 
-        if shrink_response.status_code == 200:
-            import base64
-            json_data = shrink_response.json()
-            if 'file' in json_data:
-                processed_image = base64.b64decode(json_data['file'])
-                file_id = fs.put(processed_image, filename=filename)
-                if file_id:
-                    return {"filename": filename, "id": str(file_id)}
-                else:
-                    raise HTTPException(status_code=500, detail="Failed to save file")
-            else:
-                raise HTTPException(status_code=500, detail="No 'file' field in JSON response")
+        filename = f"{slug}.webp"
+        
+        # Store original image directly
+        file_id = fs.put(response.content, filename=filename)
+        if file_id:
+            return {"filename": filename, "id": str(file_id)}
         else:
-            raise HTTPException(status_code=500, detail="Image processing failed")
+            raise HTTPException(status_code=500, detail="Failed to save file")
+            
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.delete("/admin/media/{file_id}")
