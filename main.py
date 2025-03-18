@@ -159,8 +159,16 @@ async def delete_media(file_id: str, authorized: bool = Depends(verify_admin)):
 async def get_media(file_id: str):
     from bson.objectid import ObjectId
     from fastapi.responses import Response
+    import mimetypes
+    
     file = fs.get(ObjectId(file_id))
-    return Response(file.read(), media_type="application/octet-stream")
+    filename = file.filename
+    content_type, _ = mimetypes.guess_type(filename)
+    if not content_type:
+        content_type = "application/octet-stream"
+    
+    headers = {"Content-Disposition": f"inline; filename={filename}"}
+    return Response(file.read(), media_type=content_type, headers=headers)
 
 
 @app.get("/")
