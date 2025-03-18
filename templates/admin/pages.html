@@ -41,7 +41,7 @@
                         <select name="template" class="form-control" required onchange="loadTemplateFields(this.value)">
                             <option value="">Select template</option>
                             {% for template in templates %}
-                            <option value="{{ template }}">{{ template }}</option>
+                            <option value="{{ template }}" {% if template == 'article.html' %}selected{% endif %}>{{ template }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -103,7 +103,14 @@ async function setArticleAttributes() {
         const text = await response.json();
         const data = JSON.parse(text);
 
-        if (data.title) document.querySelector('input[name="field_title"]').value = data.title;
+        if (data.title) {
+            document.querySelector('input[name="field_title"]').value = data.title;
+            // Convert title to skewer-case and set path
+            const slug = data.title.toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-');
+            document.querySelector('input[name="path"]').value = `blog/${slug}`;
+        }
         if (data.description) document.querySelector('textarea[name="field_description"]').value = data.description;
         if (data.image_prompt) document.getElementById('imagePrompt').value = data.image_prompt;
     } catch (error) {
