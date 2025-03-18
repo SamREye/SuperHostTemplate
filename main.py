@@ -155,19 +155,22 @@ async def delete_media(file_id: str, authorized: bool = Depends(verify_admin)):
     fs.delete(file_id)
     return {"status": "success"}
 
-@app.get("/media/{file_id}")
-async def get_media(file_id: str):
-    from bson.objectid import ObjectId
+@app.get("/media/name/{filename}")
+async def get_media(filename: str):
+    from urllib.parse import unquote
     from fastapi.responses import Response
     import mimetypes
     
-    file = fs.get(ObjectId(file_id))
-    filename = file.filename
-    content_type, _ = mimetypes.guess_type(filename)
+    decoded_filename = unquote(filename)
+    file = fs.find_one({"filename": decoded_filename})
+    if not file:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    content_type, _ = mimetypes.guess_type(decoded_filename)
     if not content_type:
         content_type = "application/octet-stream"
     
-    headers = {"Content-Disposition": f"inline; filename={filename}"}
+    headers = {"Content-Disposition": f"inline; filename={decoded_filename}"}
     return Response(file.read(), media_type=content_type, headers=headers)
 
 
