@@ -57,12 +57,16 @@ async def list_pages(authorized: bool = Depends(verify_admin)):
     if not authorized:
         return RedirectResponse(url="/login")
     pages = list(db.pages.find())
-    templates_list = [f for f in os.listdir("templates/pages") if f.endswith('.html')]
-    return templates.get_template("admin/pages.html").render(pages=pages, templates=templates_list)
+    templates_list = [
+        f for f in os.listdir("templates/pages") if f.endswith('.html')
+    ]
+    return templates.get_template("admin/pages.html").render(
+        pages=pages, templates=templates_list)
 
 
 @app.get("/admin/template-fields/{template}")
-async def get_template_fields(template: str, authorized: bool = Depends(verify_admin)):
+async def get_template_fields(template: str,
+                              authorized: bool = Depends(verify_admin)):
     if not authorized:
         raise HTTPException(status_code=401)
     try:
@@ -75,6 +79,7 @@ async def get_template_fields(template: str, authorized: bool = Depends(verify_a
     except:
         raise HTTPException(status_code=404)
 
+
 @app.get("/admin/pages/{id}")
 async def get_page(id: str, authorized: bool = Depends(verify_admin)):
     if not authorized:
@@ -86,6 +91,7 @@ async def get_page(id: str, authorized: bool = Depends(verify_admin)):
     page["_id"] = str(page["_id"])
     return page
 
+
 @app.post("/admin/pages")
 async def create_page(request: Request,
                       authorized: bool = Depends(verify_admin),
@@ -93,14 +99,14 @@ async def create_page(request: Request,
                       template: str = Form(...)):
     if not authorized:
         return RedirectResponse(url="/login")
-    
+
     form = await form_data.form()
     content = {}
     for key, value in form.items():
         if key.startswith("field_"):
             field_name = key[6:]  # Remove 'field_' prefix
             content[field_name] = value
-    
+
     db.pages.insert_one({
         "path": path,
         "template": template,
@@ -109,25 +115,23 @@ async def create_page(request: Request,
     })
     return RedirectResponse(url="/admin/pages", status_code=302)
 
+
 @app.post("/admin/pages/{id}")
 async def update_page(request: Request,
-                     id: str,
-                     authorized: bool = Depends(verify_admin)):
+                      id: str,
+                      authorized: bool = Depends(verify_admin)):
     if not authorized:
         return RedirectResponse(url="/login")
-    
+
     form = await form_data.form()
     content = {}
     for key, value in form.items():
         if key.startswith("field_"):
             field_name = key[6:]
             content[field_name] = value
-    
+
     from bson.objectid import ObjectId
-    db.pages.update_one(
-        {"_id": ObjectId(id)},
-        {"$set": {"content": content}}
-    )
+    db.pages.update_one({"_id": ObjectId(id)}, {"$set": {"content": content}})
     return RedirectResponse(url="/admin/pages", status_code=302)
 
 
@@ -139,21 +143,65 @@ async def list_media(authorized: bool = Depends(verify_admin)):
     return templates.get_template("admin/media.html").render(files=files)
 
 
+from pydantic import BaseModel
+
+
+class UrlUpload(BaseModel):
+    url: str
+    slug: str
+
+
 @app.post("/admin/media")
 async def upload_media(authorized: bool = Depends(verify_admin),
                        file: UploadFile = File(...),
                        overwrite: bool = Form(False)):
     if not authorized:
         return RedirectResponse(url="/login")
-    
+
     existing = fs.find_one({"filename": file.filename})
     if existing and not overwrite:
         return {"status": "confirm_overwrite", "filename": file.filename}
-        
+
     if existing:
         fs.delete(existing._id)
     file_id = fs.put(file.file, filename=file.filename)
     return RedirectResponse(url="/admin/media", status_code=302)
+
+
+@app.post("/upload_and_compress_image_from_url")
+async def upload_from_url(upload: UrlUpload):
+    url = upload.url
+    import requests
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise HTTPException(status_code=400, detail="Failed to fetch image")
+
+    # Use the slug from the UrlUpload object
+    slug = upload.slug
+    if not slug:
+        raise HTTPException(status_code=400, detail="Slug is required")
+
+    filename = f"{slug}.webp"
+
+    # Process image through WebP shrinker
+    files = {'image': (filename, response.content, 'image/webp')}
+    data = {'quality': '70', 'width': '800', 'height': '800'}
+
+    shrink_response = requests.post(
+        'https://webp-shrinker.sambourque.com/process', files=files, data=data)
+
+    if shrink_response.status_code == 200:
+        import base64
+        json_data = shrink_response.json()
+        if 'file' in json_data:
+            processed_image = base64.b64decode(json_data['file'])
+            file_id = fs.put(processed_image, filename=filename)
+            return {"filename": filename, "id": str(file_id)}
+        else:
+            raise HTTPException(status_code=500,
+                                detail="No 'file' field in JSON response")
+    else:
+        raise HTTPException(status_code=500, detail="Image processing failed")
 
 
 @app.delete("/admin/media/{file_id}")
@@ -163,21 +211,22 @@ async def delete_media(file_id: str, authorized: bool = Depends(verify_admin)):
     fs.delete(file_id)
     return {"status": "success"}
 
+
 @app.get("/media/{filename}")
 async def get_media(filename: str):
     from urllib.parse import unquote
     from fastapi.responses import Response
     import mimetypes
-    
+
     decoded_filename = unquote(filename)
     file = fs.find_one({"filename": decoded_filename})
     if not file:
         raise HTTPException(status_code=404, detail="File not found")
-    
+
     content_type, _ = mimetypes.guess_type(decoded_filename)
     if not content_type:
         content_type = "application/octet-stream"
-    
+
     headers = {"Content-Disposition": f"inline; filename={decoded_filename}"}
     return Response(file.read(), media_type=content_type, headers=headers)
 
