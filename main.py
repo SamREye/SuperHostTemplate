@@ -60,23 +60,73 @@ async def list_pages(authorized: bool = Depends(verify_admin)):
     return templates.get_template("admin/pages.html").render(pages=pages)
 
 
+@app.get("/admin/template-fields/{template}")
+async def get_template_fields(template: str, authorized: bool = Depends(verify_admin)):
+    if not authorized:
+        raise HTTPException(status_code=401)
+    try:
+        with open(f"templates/pages/{template}", "r") as f:
+            content = f.read()
+            # Find all {{ VAR }} patterns
+            import re
+            fields = re.findall(r'{{\s*(\w+)\s*}}', content)
+            return list(set(fields))  # Remove duplicates
+    except:
+        raise HTTPException(status_code=404)
+
+@app.get("/admin/pages/{id}")
+async def get_page(id: str, authorized: bool = Depends(verify_admin)):
+    if not authorized:
+        raise HTTPException(status_code=401)
+    from bson.objectid import ObjectId
+    page = db.pages.find_one({"_id": ObjectId(id)})
+    if not page:
+        raise HTTPException(status_code=404)
+    page["_id"] = str(page["_id"])
+    return page
+
 @app.post("/admin/pages")
 async def create_page(authorized: bool = Depends(verify_admin),
                       path: str = Form(...),
-                      title: str = Form(...),
-                      description: str = Form(...),
                       template: str = Form(...),
-                      content: str = Form(...)):
+                      form_data: Request = Form(...)):
     if not authorized:
         return RedirectResponse(url="/login")
+    
+    form = await form_data.form()
+    content = {}
+    for key, value in form.items():
+        if key.startswith("field_"):
+            field_name = key[6:]  # Remove 'field_' prefix
+            content[field_name] = value
+    
     db.pages.insert_one({
         "path": path,
-        "title": title,
-        "description": description,
         "template": template,
         "content": content,
         "created_at": datetime.utcnow()
     })
+    return RedirectResponse(url="/admin/pages", status_code=302)
+
+@app.post("/admin/pages/{id}")
+async def update_page(id: str,
+                     authorized: bool = Depends(verify_admin),
+                     form_data: Request = Form(...)):
+    if not authorized:
+        return RedirectResponse(url="/login")
+    
+    form = await form_data.form()
+    content = {}
+    for key, value in form.items():
+        if key.startswith("field_"):
+            field_name = key[6:]
+            content[field_name] = value
+    
+    from bson.objectid import ObjectId
+    db.pages.update_one(
+        {"_id": ObjectId(id)},
+        {"$set": {"content": content}}
+    )
     return RedirectResponse(url="/admin/pages", status_code=302)
 
 

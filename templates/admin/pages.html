@@ -16,14 +16,15 @@
         <div class="list-group">
             {% for page in pages %}
             <div class="list-group-item">
-                <h5>{{ page.title }}</h5>
-                <p>Path: {{ page.path }}</p>
-                <button class="btn btn-sm btn-primary">✏️ Edit</button>
+                <h5>{{ page.path }}</h5>
+                <p>Template: {{ page.template }}</p>
+                <button class="btn btn-sm btn-primary" onclick="editPage('{{ page._id }}')">✏️ Edit</button>
                 <button class="btn btn-sm btn-danger">🗑️ Delete</button>
             </div>
             {% endfor %}
         </div>
         
+        <!-- New Page Modal -->
         <div class="modal fade" id="newPageModal">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -32,34 +33,99 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <form method="POST">
+                        <form method="POST" id="newPageForm">
                             <div class="mb-3">
                                 <label class="form-label">Path</label>
                                 <input type="text" name="path" class="form-control" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Title</label>
-                                <input type="text" name="title" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Meta Description</label>
-                                <input type="text" name="description" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
                                 <label class="form-label">Template</label>
-                                <input type="text" name="template" class="form-control" required>
+                                <select name="template" class="form-control" onchange="loadTemplateFields()" required>
+                                    <option value="">Select template...</option>
+                                    {% for template in templates %}
+                                    <option value="{{ template }}">{{ template }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Content</label>
-                                <textarea name="content" class="form-control" rows="5" required></textarea>
-                            </div>
+                            <div id="dynamicFields"></div>
                             <button type="submit" class="btn btn-primary">Create</button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Edit Page Modal -->
+        <div class="modal fade" id="editPageModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Page</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" id="editPageForm">
+                            <input type="hidden" name="_id" id="editPageId">
+                            <div class="mb-3">
+                                <label class="form-label">Path</label>
+                                <input type="text" name="path" class="form-control" disabled>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Template</label>
+                                <input type="text" name="template" class="form-control" disabled>
+                            </div>
+                            <div id="editDynamicFields"></div>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script>
+    async function loadTemplateFields() {
+        const template = document.querySelector('select[name="template"]').value;
+        const response = await fetch(`/admin/template-fields/${template}`);
+        const fields = await response.json();
+        
+        const container = document.getElementById('dynamicFields');
+        container.innerHTML = '';
+        
+        fields.forEach(field => {
+            container.innerHTML += `
+                <div class="mb-3">
+                    <label class="form-label">${field}</label>
+                    <input type="text" name="field_${field}" class="form-control" required>
+                </div>
+            `;
+        });
+    }
+
+    async function editPage(id) {
+        const response = await fetch(`/admin/pages/${id}`);
+        const page = await response.json();
+        
+        const form = document.getElementById('editPageForm');
+        form.querySelector('input[name="_id"]').value = page._id;
+        form.querySelector('input[name="path"]').value = page.path;
+        form.querySelector('input[name="template"]').value = page.template;
+        
+        const container = document.getElementById('editDynamicFields');
+        container.innerHTML = '';
+        
+        Object.entries(page.content).forEach(([field, value]) => {
+            container.innerHTML += `
+                <div class="mb-3">
+                    <label class="form-label">${field}</label>
+                    <input type="text" name="field_${field}" value="${value}" class="form-control" required>
+                </div>
+            `;
+        });
+        
+        new bootstrap.Modal(document.getElementById('editPageModal')).show();
+    }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
