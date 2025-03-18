@@ -18,7 +18,7 @@ def complement_article(content: str) -> str:
         "role":
         "system",
         "content":
-        f"""Given a draft for an article, generate the title, meta description, the image prompt, and format the content in markdown (if not already done). You do not have discretion to change the content. If an H1 is included, remove it from the content, and use it for the title. Apply H2 headings for groupings/sections of paragrapghs.
+        f"""Given a draft for an article, generate the title, meta description, the image prompt, and format the content in markdown (if not already done). Do not change the content wording. If an H1 is included, remove it from the content, and use it for the title. Apply H2 headings for groupings/sections of paragrapghs.
 
         Generate a unique image prompt based on the article's content, but apply the base image style as described in BASE_IMAGE_STYLE.
 
