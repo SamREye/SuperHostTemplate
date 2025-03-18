@@ -267,6 +267,4 @@ async def get_page(path: str):
         raise HTTPException(status_code=404, detail="Page not found")
     template_file = f"pages/{page['template']}"
     template = templates.get_template(template_file)
-    return template.render(title=page["title"],
-                           description=page["description"],
-                           content=markdown2.markdown(page["content"]))
+    return template.render(**page["content"])
