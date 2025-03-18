@@ -98,9 +98,15 @@ async function setArticleAttributes() {
             body: JSON.stringify({content})
         });
         const text = await response.text();
-        const data = JSON.parse(text);
-        
+        console.log(text)
+        const data1 = JSON.parse(text);
+        const data = JSON.parse(data1);
+
+        console.log(data)
+        console.log(data.title)
+
         const titleInput = document.querySelector('input[name="field_title"]');
+        console.log(titleInput)
         const descInput = document.querySelector('textarea[name="field_description"]');
         const imagePromptInput = document.getElementById('imagePrompt');
         
