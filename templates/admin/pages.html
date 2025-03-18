@@ -103,13 +103,16 @@ async function loadTemplateFields(template) {
 
 async function generateImage() {
     const prompt = document.getElementById('imagePrompt').value;
-    if (!prompt) return;
+    const path = document.querySelector('input[name="path"]').value;
+    if (!prompt || !path) {
+        alert('Please fill in both the prompt and page path');
+        return;
+    }
 
     const btn = document.getElementById('generateBtn');
     const spinner = document.getElementById('generateSpinner');
     const preview = document.getElementById('imagePreview');
     const imageField = document.getElementById('imageField');
-    const path = document.querySelector('input[name="path"]').value;
 
     btn.disabled = true;
     spinner.classList.remove('d-none');
