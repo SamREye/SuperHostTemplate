@@ -57,7 +57,8 @@ async def list_pages(authorized: bool = Depends(verify_admin)):
     if not authorized:
         return RedirectResponse(url="/login")
     pages = list(db.pages.find())
-    return templates.get_template("admin/pages.html").render(pages=pages)
+    templates_list = [f for f in os.listdir("templates/pages") if f.endswith('.html')]
+    return templates.get_template("admin/pages.html").render(pages=pages, templates=templates_list)
 
 
 @app.get("/admin/template-fields/{template}")

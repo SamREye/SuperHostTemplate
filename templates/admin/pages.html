@@ -114,14 +114,20 @@
         const container = document.getElementById('editDynamicFields');
         container.innerHTML = '';
         
-        Object.entries(page.content).forEach(([field, value]) => {
-            container.innerHTML += `
-                <div class="mb-3">
-                    <label class="form-label">${field}</label>
-                    <input type="text" name="field_${field}" value="${value}" class="form-control" required>
-                </div>
-            `;
-        });
+        // Get template fields
+        fetch(`/admin/template-fields/${page.template}`)
+            .then(response => response.json())
+            .then(fields => {
+                fields.forEach(field => {
+                    const value = page.content[field] || '';
+                    container.innerHTML += `
+                        <div class="mb-3">
+                            <label class="form-label">${field}</label>
+                            <input type="text" name="field_${field}" value="${value}" class="form-control" required>
+                        </div>
+                    `;
+                });
+            });
         
         new bootstrap.Modal(document.getElementById('editPageModal')).show();
     }
