@@ -162,7 +162,8 @@ async def create_page(request: Request,
         "path": path,
         "template": template,
         "content": content,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
+        "modified_at": datetime.utcnow()
     })
     return RedirectResponse(url="/admin/pages", status_code=302)
 
@@ -217,7 +218,15 @@ async def update_page(request: Request,
                                 detail=f"Failed to save image: {str(e)}")
 
     from bson.objectid import ObjectId
-    db.pages.update_one({"_id": ObjectId(id)}, {"$set": {"content": content}})
+    db.pages.update_one(
+        {"_id": ObjectId(id)}, 
+        {
+            "$set": {
+                "content": content,
+                "modified_at": datetime.utcnow()
+            }
+        }
+    )
     return RedirectResponse(url="/admin/pages", status_code=302)
     return RedirectResponse(url="/admin/pages", status_code=302)
 

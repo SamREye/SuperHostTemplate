@@ -12,14 +12,10 @@
       "@type": "BlogPosting",
       "headline": "{{ title }}",
       "description": "{{ description }}",
-      "image": "{{ image }}",
+      "image": "https://{{ domain }}{{ image }}",
       "articleBody": "{{ content | striptags }}",
-      "datePublished": "{{ content.created_at if content.created_at else '' }}",
-      "dateModified": "{{ content.updated_at if content.updated_at else '' }}",
-      "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": "https://{{ domain }}/page/{{ path }}"
-      }
+      "datePublished": "{{ page.created_at.isoformat() if page.created_at else '' }}",
+      "dateModified": "{{ page.modified_at.isoformat() if page.modified_at else '' }}"
     }
     </script>
 </head>
