@@ -358,4 +358,4 @@ async def get_page(path: str):
         raise HTTPException(status_code=404, detail="Page not found")
     template_file = f"pages/{page['template']}"
     template = templates.get_template(template_file)
-    return template.render(page=page, **page["content"])
+    return template.render(page=page, request=request, **page["content"])
