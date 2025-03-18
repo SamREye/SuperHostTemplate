@@ -134,7 +134,7 @@ async function generateImage() {
         const uploadData = await uploadResponse.json();
         
         preview.innerHTML = `<img src="/media/${uploadData.filename}" class="img-fluid">`;
-        imageField.value = `/media/${uploadData.filename}`;
+        imageField.value = `/media/${uploadData.filename}`;dia/${uploadData.filename}`;
     } catch (error) {
         console.error('Error:', error);
         preview.innerHTML = '<div class="alert alert-danger">Failed to generate image</div>';
