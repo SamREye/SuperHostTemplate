@@ -161,6 +161,7 @@ function handleEditSubmit(form) {
     const button = document.getElementById('editSaveButton');
     spinner.classList.remove('d-none');
     button.disabled = true;
+    window.scrollTo(0, 0);
     return true;
 }
 
