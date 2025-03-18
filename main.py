@@ -190,10 +190,11 @@ async def upload_from_url(upload: UrlUpload):
     files = {'image': (filename, response.content, 'image/webp')}
     data = {'quality': '70', 'width': '800', 'height': '800'}
 
-    shrink_response = requests.post(
-        'https://webp-shrinker.sambourque.com/process', files=files, data=data)
+    try:
+        shrink_response = requests.post(
+            'https://webp-shrinker.sambourque.com/process', files=files, data=data)
 
-    if shrink_response.status_code == 200:
+        if shrink_response.status_code == 200:
         import base64
         json_data = shrink_response.json()
         if 'file' in json_data:

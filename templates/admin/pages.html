@@ -132,9 +132,10 @@ async function generateImage() {
             })
         });
         const uploadData = await uploadResponse.json();
-
-        if (uploadData.filename) {
+        
+        if (uploadData && uploadData.filename) {
             preview.innerHTML = `<img src="/media/${uploadData.filename}" class="img-fluid">`;
+            imageField.value = `/media/${uploadData.filename}`;
             imageField.value = `/media/${uploadData.filename}`;
         } else {
             throw new Error('No filename returned from upload');
