@@ -86,10 +86,10 @@ async def get_page(id: str, authorized: bool = Depends(verify_admin)):
     return page
 
 @app.post("/admin/pages")
-async def create_page(authorized: bool = Depends(verify_admin),
+async def create_page(request: Request,
+                      authorized: bool = Depends(verify_admin),
                       path: str = Form(...),
-                      template: str = Form(...),
-                      form_data: Request = Form(...)):
+                      template: str = Form(...)):
     if not authorized:
         return RedirectResponse(url="/login")
     
@@ -109,9 +109,9 @@ async def create_page(authorized: bool = Depends(verify_admin),
     return RedirectResponse(url="/admin/pages", status_code=302)
 
 @app.post("/admin/pages/{id}")
-async def update_page(id: str,
-                     authorized: bool = Depends(verify_admin),
-                     form_data: Request = Form(...)):
+async def update_page(request: Request,
+                     id: str,
+                     authorized: bool = Depends(verify_admin)):
     if not authorized:
         return RedirectResponse(url="/login")
     
