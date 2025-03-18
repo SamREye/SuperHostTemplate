@@ -1,4 +1,3 @@
-
 {% extends "admin/base.html" %}
 
 {% block title %}Manage Pages{% endblock %}
@@ -74,7 +73,7 @@ async function loadTemplateFields(template) {
     const fields = await response.json();
     const container = document.getElementById('dynamicFields');
     container.innerHTML = '';
-    
+
     fields.forEach(field => {
         if (field === 'image') {
             container.innerHTML += `
@@ -122,7 +121,7 @@ async function generateImage() {
             body: JSON.stringify({prompt})
         });
         const data = await response.json();
-        
+
         // Upload the generated image
         const uploadResponse = await fetch('/upload_and_compress_image_from_url', {
             method: 'POST',
@@ -133,9 +132,13 @@ async function generateImage() {
             })
         });
         const uploadData = await uploadResponse.json();
-        
-        preview.innerHTML = `<img src="/media/${uploadData.filename}" class="img-fluid">`;
-        imageField.value = `/media/${uploadData.filename}`;
+
+        if (uploadData.filename) {
+            preview.innerHTML = `<img src="/media/${uploadData.filename}" class="img-fluid">`;
+            imageField.value = `/media/${uploadData.filename}`;
+        } else {
+            throw new Error('No filename returned from upload');
+        }
     } catch (error) {
         console.error('Error:', error);
         preview.innerHTML = '<div class="alert alert-danger">Failed to generate image</div>';
