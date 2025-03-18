@@ -30,7 +30,7 @@ def verify_admin(session: Optional[str] = Cookie(None)) -> bool:
         os.getenv("ADMIN_PASSWORD").encode()).decode()
 
 
-@app.get("/login")
+@app.get("/login", response_class=HTMLResponse)
 async def login_page():
     return templates.get_template("login.html").render()
 
