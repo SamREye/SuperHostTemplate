@@ -318,6 +318,7 @@ async function editPage(id) {
                 if (b === 'title') return 1;
                 if (a === 'description') return -1;
                 if (b === 'description') return 1;
+                if (a === 'content') return 0;
                 if (a === 'image') return 1;
                 if (b === 'image') return -1;
                 return 0;
@@ -342,14 +343,18 @@ async function editPage(id) {
                             <input type="hidden" name="field_image" id="editImageField" value="${value}" required>
                         </div>
                     `;
+                } else if (field === 'content') {
+                    container.innerHTML += `
+                        <div class="mb-3">
+                            <label class="form-label">Content</label>
+                            <textarea name="field_content" class="form-control" rows="15" required>${value}</textarea>
+                        </div>
+                    `;
                 } else {
                     container.innerHTML += `
                         <div class="mb-3">
                             <label class="form-label">${field}</label>
-                            ${field === 'content' 
-                                ? `<textarea name="field_${field}" class="form-control" rows="10" required>${value}</textarea>`
-                                : `<input type="text" name="field_${field}" value="${value}" class="form-control" required>`
-                            }
+                            <input type="text" name="field_${field}" value="${value}" class="form-control" required>
                         </div>
                     `;
                 }
