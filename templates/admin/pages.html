@@ -97,19 +97,12 @@ async function setArticleAttributes() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({content})
         });
-        const data = await response.json();
+        const text = await response.text();
+        const data = JSON.parse(text);
 
-        console.log(data)
-        console.log(data.title)
-
-        const titleInput = document.querySelector('input[name="field_title"]');
-        console.log(titleInput)
-        const descInput = document.querySelector('textarea[name="field_description"]');
-        const imagePromptInput = document.getElementById('imagePrompt');
-        
-        if (titleInput && data.title) titleInput.value = data.title;
-        if (descInput && data.description) descInput.value = data.description;
-        if (imagePromptInput && data.image_prompt) imagePromptInput.value = data.image_prompt;
+        if (data.title) document.querySelector('input[name="field_title"]').value = data.title;
+        if (data.description) document.querySelector('textarea[name="field_description"]').value = data.description;
+        if (data.image_prompt) document.getElementById('imagePrompt').value = data.image_prompt;
     } catch (error) {
         console.error('Error:', error);
         alert('Failed to set article attributes');
@@ -203,7 +196,7 @@ async function generateImage() {
             body: JSON.stringify({prompt})
         });
         const data = await response.json();
-        
+
         // Just show preview
         preview.innerHTML = `
             <img src="${data.img_url}" class="img-fluid">
@@ -255,7 +248,7 @@ async function generateEditImage() {
             body: JSON.stringify({prompt})
         });
         const data = await response.json();
-        
+
         preview.innerHTML = `
             <img src="${data.img_url}" class="img-fluid">
             <input type="hidden" name="pending_image_url" value="${data.img_url}">
