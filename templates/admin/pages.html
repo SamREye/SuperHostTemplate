@@ -97,11 +97,16 @@ async function setArticleAttributes() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({content})
         });
-        const data = JSON.parse(await response.text());
+        const text = await response.text();
+        const data = JSON.parse(text);
         
-        if (data.title) document.querySelector('input[name="field_title"]').value = data.title;
-        if (data.description) document.querySelector('textarea[name="field_description"]').value = data.description;
-        if (data.image_prompt) document.getElementById('imagePrompt').value = data.image_prompt;
+        const titleInput = document.querySelector('input[name="field_title"]');
+        const descInput = document.querySelector('textarea[name="field_description"]');
+        const imagePromptInput = document.getElementById('imagePrompt');
+        
+        if (titleInput && data.title) titleInput.value = data.title;
+        if (descInput && data.description) descInput.value = data.description;
+        if (imagePromptInput && data.image_prompt) imagePromptInput.value = data.image_prompt;
     } catch (error) {
         console.error('Error:', error);
         alert('Failed to set article attributes');
