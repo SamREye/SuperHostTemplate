@@ -9,12 +9,26 @@
     <div class="input-group">
         <input type="file" name="file" class="form-control" required>
         <input type="hidden" name="overwrite" value="false">
-        <button type="submit" class="btn btn-success">Upload</button>
+        <button type="submit" class="btn btn-success" id="uploadBtn">
+            <span class="spinner-border spinner-border-sm d-none" role="status" id="uploadSpinner"></span>
+            <span id="uploadText">Upload</span>
+        </button>
     </div>
 </form>
 
 <script>
+function setLoading(isLoading) {
+    const spinner = document.getElementById('uploadSpinner');
+    const text = document.getElementById('uploadText');
+    const btn = document.getElementById('uploadBtn');
+    
+    spinner.classList.toggle('d-none', !isLoading);
+    text.textContent = isLoading ? 'Uploading...' : 'Upload';
+    btn.disabled = isLoading;
+}
+
 document.getElementById('uploadForm').onsubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
     const form = e.target;
     const response = await fetch('/admin/media', {
@@ -31,6 +45,7 @@ document.getElementById('uploadForm').onsubmit = async (e) => {
     } else {
         window.location.reload();
     }
+    setLoading(false);
 };
 </script>
 <div class="list-group">
