@@ -195,9 +195,9 @@ async def upload_from_url(upload: UrlUpload):
             'https://webp-shrinker.sambourque.com/process', files=files, data=data)
 
         if shrink_response.status_code == 200:
-        import base64
-        json_data = shrink_response.json()
-        if 'file' in json_data:
+            import base64
+            json_data = shrink_response.json()
+            if 'file' in json_data:
             processed_image = base64.b64decode(json_data['file'])
             file_id = fs.put(processed_image, filename=filename)
             if file_id:
