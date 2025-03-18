@@ -32,7 +32,7 @@ def verify_admin(session: Optional[str] = Cookie(None)) -> bool:
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page():
-    return templates.get_template("login.html").render()
+    return templates.get_template("admin/login.html").render()
 
 
 @app.post("/login")
@@ -49,7 +49,7 @@ async def login(password: str = Form(...)):
 async def admin_dashboard(authorized: bool = Depends(verify_admin)):
     if not authorized:
         return RedirectResponse(url="/login")
-    return templates.get_template("admin.html").render()
+    return templates.get_template("admin/admin.html").render()
 
 
 @app.get("/admin/pages", response_class=HTMLResponse)
@@ -57,7 +57,7 @@ async def list_pages(authorized: bool = Depends(verify_admin)):
     if not authorized:
         return RedirectResponse(url="/login")
     pages = list(db.pages.find())
-    return templates.get_template("pages.html").render(pages=pages)
+    return templates.get_template("admin/pages.html").render(pages=pages)
 
 
 @app.post("/admin/pages")
@@ -85,7 +85,7 @@ async def list_media(authorized: bool = Depends(verify_admin)):
     if not authorized:
         return RedirectResponse(url="/login")
     files = fs.find()
-    return templates.get_template("media.html").render(files=files)
+    return templates.get_template("admin/media.html").render(files=files)
 
 
 @app.post("/admin/media")
