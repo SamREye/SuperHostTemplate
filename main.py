@@ -14,10 +14,36 @@ import secrets
 import base64
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 client = MongoClient(os.getenv("MONGO_URL"))
 domain = os.getenv("DOMAIN_NAME")
 db_name = domain.replace('.', '-')
 db = client[db_name]
+
+@app.get("/robots.txt")
+async def get_robots():
+    from fastapi.responses import FileResponse
+    return FileResponse("static/robots.txt")
+
+@app.get("/sitemap.xml")
+async def get_sitemap():
+    from fastapi.responses import Response
+    pages = list(db.pages.find())
+    
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    # Add home page
+    xml += f'  <url>\n    <loc>https://{domain}/</loc>\n  </url>\n'
+    
+    # Add all pages
+    for page in pages:
+        xml += f'  <url>\n    <loc>https://{domain}/page/{page["path"]}</loc>\n  </url>\n'
+    
+    xml += '</urlset>'
+    
+    return Response(content=xml, media_type="application/xml")
 
 # Setup Jinja2 templates
 templates = Environment(loader=FileSystemLoader("templates"))
@@ -285,8 +311,22 @@ async def generate_image(prompt: dict):
 
 
 @app.get("/")
-def read_root():
-    return {"Hello": "World"}
+async def read_root():
+    page = db.pages.find_one({"path": "index"})
+    if not page:
+        # Create default home page if it doesn't exist
+        page = {
+            "path": "index",
+            "template": "index.html",
+            "content": {
+                "title": "Welcome",
+                "description": "Welcome to my website",
+                "content": "Welcome to my website!"
+            }
+        }
+        db.pages.insert_one(page)
+    template = templates.get_template(f"pages/{page['template']}")
+    return HTMLResponse(template.render(**page["content"]))
 
 
 @app.get("/page/{path:path}", response_class=HTMLResponse)
