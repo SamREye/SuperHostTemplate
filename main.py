@@ -100,12 +100,29 @@ async def create_page(request: Request,
     if not authorized:
         return RedirectResponse(url="/login")
 
-    form = await form_data.form()
+    form = await request.form()
     content = {}
+    pending_image_url = None
+    
     for key, value in form.items():
-        if key.startswith("field_"):
+        if key == "pending_image_url":
+            pending_image_url = value
+        elif key.startswith("field_"):
             field_name = key[6:]  # Remove 'field_' prefix
             content[field_name] = value
+            
+    # Handle pending image upload if exists
+    if pending_image_url:
+        try:
+            response = requests.get(pending_image_url, verify=False)
+            response.raise_for_status()
+            
+            filename = f"{path}.webp"
+            file_id = fs.put(response.content, filename=filename)
+            if file_id:
+                content['image'] = f"/media/{filename}"
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to save image: {str(e)}")
 
     db.pages.insert_one({
         "path": path,

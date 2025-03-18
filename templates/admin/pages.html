@@ -124,24 +124,12 @@ async function generateImage() {
             body: JSON.stringify({prompt})
         });
         const data = await response.json();
-
-        // Upload the generated image
-        const uploadResponse = await fetch('/upload_and_compress_image_from_url', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                url: data.img_url,
-                slug: path
-            })
-        });
         
-        const uploadData = await uploadResponse.json();
-        if (!uploadResponse.ok) {
-            throw new Error(uploadData.detail || 'Upload failed');
-        }
-        
-        if (uploadData && uploadData.filename) {
-            preview.innerHTML = `<img src="/media/${uploadData.filename}" class="img-fluid">`;
+        // Just show preview
+        preview.innerHTML = `
+            <img src="${data.img_url}" class="img-fluid">
+            <input type="hidden" name="pending_image_url" value="${data.img_url}">
+        `;
             imageField.value = `/media/${uploadData.filename}`;
         } else {
             throw new Error('No filename returned from upload');

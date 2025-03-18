@@ -63,7 +63,10 @@ document.getElementById('uploadForm').onsubmit = async (e) => {
 <script>
 async function deleteFile(id) {
     if (confirm('Delete this file?')) {
-        await fetch(`/admin/media/${id}`, {method: 'DELETE'});
+        await fetch(`/admin/media/${id}`, {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'}
+        });
         location.reload();
     }
 }
