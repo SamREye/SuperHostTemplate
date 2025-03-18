@@ -52,7 +52,7 @@ async def get_sitemap():
 
 # Setup Jinja2 templates
 templates = Environment(loader=FileSystemLoader("templates"))
-templates.filters["markdown"] = lambda text: markdown2.markdown(text)
+templates.filters["markdown"] = lambda text: markdown2.markdown(text) if text is not None else ""
 fs = GridFS(db)
 
 
