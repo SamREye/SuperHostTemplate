@@ -23,8 +23,10 @@ db = client[db_name]
 
 @app.get("/robots.txt")
 async def get_robots():
-    from fastapi.responses import FileResponse
-    return FileResponse("static/robots.txt")
+    from fastapi.responses import Response
+    with open("static/robots.txt") as f:
+        content = f.read().format(domain=domain)
+    return Response(content, media_type="text/plain")
 
 @app.get("/sitemap.xml")
 async def get_sitemap():
