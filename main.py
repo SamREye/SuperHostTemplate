@@ -167,6 +167,16 @@ async def create_page(request: Request,
     return RedirectResponse(url="/admin/pages", status_code=302)
 
 
+@app.delete("/admin/pages/{id}")
+async def delete_page(id: str, authorized: bool = Depends(verify_admin)):
+    if not authorized:
+        raise HTTPException(status_code=401)
+    from bson.objectid import ObjectId
+    result = db.pages.delete_one({"_id": ObjectId(id)})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Page not found")
+    return {"status": "success"}
+
 @app.post("/admin/pages/{id}")
 async def update_page(request: Request,
                       id: str,

@@ -13,11 +13,31 @@
         <h5>{{ page.path }}</h5>
         <p>Template: {{ page.template }}</p>
         <button class="btn btn-sm btn-primary" onclick="editPage('{{ page._id }}')">✏️ Edit</button>
-        <button class="btn btn-sm btn-danger">🗑️ Delete</button>
+        <button class="btn btn-sm btn-danger" onclick="deletePage('{{ page._id }}')">🗑️ Delete</button>
         <a href="/page/{{ page.path }}" target="_blank" class="btn btn-sm btn-info">👁️ View</a>
     </div>
     {% endfor %}
 </div>
+
+<script>
+async function deletePage(id) {
+    if (!confirm('Are you sure you want to delete this page?')) return;
+    
+    try {
+        const response = await fetch(`/admin/pages/${id}`, {
+            method: 'DELETE'
+        });
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Failed to delete page');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to delete page');
+    }
+}
+</script>
 
 <!-- New Page Modal -->
 <div class="modal fade" id="newPageModal">
