@@ -107,6 +107,14 @@ async function loadTemplateFields(template) {
             `;
         }
     });
+}erHTML += `
+                <div class="mb-3">
+                    <label class="form-label">${field}</label>
+                    <input type="text" name="field_${field}" class="form-control" required>
+                </div>
+            `;
+        }
+    });
 }
 
 async function generateImage() {
@@ -141,7 +149,11 @@ async function generateImage() {
     } catch (error) {
         console.error('Error:', error);
         preview.innerHTML = '<div class="alert alert-danger">Failed to generate image</div>';
-        preview.innerHTML = '<div class="alert alert-danger">Failed to generate image</div>';
+    } finally {
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+    }
+}nerHTML = '<div class="alert alert-danger">Failed to generate image</div>';
     } finally {
         btn.disabled = false;
         spinner.classList.add('d-none');
