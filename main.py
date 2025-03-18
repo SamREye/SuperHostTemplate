@@ -17,7 +17,7 @@ templates = Environment(loader=FileSystemLoader("templates"))
 def read_root():
     return {"Hello": "World"}
 
-@app.get("/page/{path}", response_class=HTMLResponse)
+@app.get("/page/{path:path}", response_class=HTMLResponse)
 async def get_page(path: str):
     page = db.pages.find_one({"path": path})
     if not page:
