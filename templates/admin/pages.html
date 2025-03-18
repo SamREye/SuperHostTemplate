@@ -79,13 +79,55 @@
 </div>
 
 <script>
+async function setArticleAttributes() {
+    const content = document.querySelector('textarea[name="field_content"]').value;
+    if (!content) {
+        alert('Please enter content first');
+        return;
+    }
+
+    const btn = document.getElementById('setAttributesBtn');
+    const spinner = document.getElementById('setAttributesSpinner');
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+
+    try {
+        const response = await fetch('/admin/complement_article', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({content})
+        });
+        const data = await response.json();
+        
+        document.querySelector('input[name="field_title"]').value = data.title;
+        document.querySelector('textarea[name="field_description"]').value = data.description;
+        document.getElementById('imagePrompt').value = data.image_prompt;
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to set article attributes');
+    } finally {
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+    }
+}
+
 async function loadTemplateFields(template) {
     const response = await fetch(`/admin/template-fields/${template}`);
     const fields = await response.json();
     const container = document.getElementById('dynamicFields');
     container.innerHTML = '';
 
-    fields.forEach(field => {
+    const orderedFields = fields.sort((a, b) => {
+        if (a === 'title') return -1;
+        if (b === 'title') return 1;
+        if (a === 'description') return -1;
+        if (b === 'description') return 1;
+        if (a === 'image') return 1;
+        if (b === 'image') return -1;
+        return 0;
+    });
+
+    orderedFields.forEach(field => {
         if (field === 'image') {
             container.innerHTML += `
                 <div class="mb-3">
@@ -101,15 +143,33 @@ async function loadTemplateFields(template) {
                     <input type="hidden" name="field_image" id="imageField" required>
                 </div>
             `;
+        } else if (field === 'title') {
+            container.innerHTML += `
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <input type="text" name="field_title" class="form-control" required>
+                </div>
+            `;
         } else {
             container.innerHTML += `
                 <div class="mb-3">
                     <label class="form-label">${field}</label>
-                    <input type="text" name="field_${field}" class="form-control" required>
+                    <textarea name="field_${field}" class="form-control" rows="3" required></textarea>
                 </div>
             `;
         }
     });
+
+    if (template === 'article.html') {
+        container.innerHTML += `
+            <div class="mb-3">
+                <button type="button" class="btn btn-secondary" onclick="setArticleAttributes()" id="setAttributesBtn">
+                    <span class="spinner-border spinner-border-sm d-none" id="setAttributesSpinner"></span>
+                    Set Article Attributes
+                </button>
+            </div>
+        `;
+    }
 }
 
 async function generateImage() {

@@ -316,6 +316,14 @@ async def generate_image(prompt: dict):
     from prompting import generate_image
     return generate_image(prompt["prompt"])
 
+@app.post("/admin/complement_article")
+async def complement_article(content: dict, authorized: bool = Depends(verify_admin)):
+    if not authorized:
+        raise HTTPException(status_code=401)
+    from prompting import complement_article
+    result = complement_article(content["content"])
+    return result
+
 
 @app.get("/")
 async def read_root():
