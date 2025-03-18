@@ -208,6 +208,8 @@ async def upload_from_url(upload: UrlUpload):
                 raise HTTPException(status_code=500, detail="No 'file' field in JSON response")
         else:
             raise HTTPException(status_code=500, detail="Image processing failed")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.delete("/admin/media/{file_id}")
