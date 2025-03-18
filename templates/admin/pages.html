@@ -97,11 +97,11 @@ async function setArticleAttributes() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({content})
         });
-        const data = await response.json();
+        const data = JSON.parse(await response.text());
         
-        document.querySelector('input[name="field_title"]').value = data.title;
-        document.querySelector('textarea[name="field_description"]').value = data.description;
-        document.getElementById('imagePrompt').value = data.image_prompt;
+        if (data.title) document.querySelector('input[name="field_title"]').value = data.title;
+        if (data.description) document.querySelector('textarea[name="field_description"]').value = data.description;
+        if (data.image_prompt) document.getElementById('imagePrompt').value = data.image_prompt;
     } catch (error) {
         console.error('Error:', error);
         alert('Failed to set article attributes');
