@@ -171,6 +171,9 @@ async def upload_media(authorized: bool = Depends(verify_admin),
 @app.post("/upload_and_compress_image_from_url")
 async def upload_from_url(upload: UrlUpload):
     url = upload.url
+    slug = upload.slug
+    if not slug:
+        raise HTTPException(status_code=400, detail="Slug is required")
     import requests
     response = requests.get(url)
     if response.status_code != 200:
