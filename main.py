@@ -155,6 +155,13 @@ async def delete_media(file_id: str, authorized: bool = Depends(verify_admin)):
     fs.delete(file_id)
     return {"status": "success"}
 
+@app.get("/media/{file_id}")
+async def get_media(file_id: str):
+    from bson.objectid import ObjectId
+    from fastapi.responses import Response
+    file = fs.get(ObjectId(file_id))
+    return Response(file.read(), media_type="application/octet-stream")
+
 
 @app.get("/")
 def read_root():
