@@ -45,14 +45,14 @@ async def login(password: str = Form(...)):
     raise HTTPException(status_code=401)
 
 
-@app.get("/admin")
+@app.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(authorized: bool = Depends(verify_admin)):
     if not authorized:
         return RedirectResponse(url="/login")
     return templates.get_template("admin.html").render()
 
 
-@app.get("/admin/pages")
+@app.get("/admin/pages", response_class=HTMLResponse)
 async def list_pages(authorized: bool = Depends(verify_admin)):
     if not authorized:
         return RedirectResponse(url="/login")
@@ -80,7 +80,7 @@ async def create_page(authorized: bool = Depends(verify_admin),
     return RedirectResponse(url="/admin/pages", status_code=302)
 
 
-@app.get("/admin/media")
+@app.get("/admin/media", response_class=HTMLResponse)
 async def list_media(authorized: bool = Depends(verify_admin)):
     if not authorized:
         return RedirectResponse(url="/login")
