@@ -226,8 +226,12 @@ async def upload_from_url(upload: UrlUpload):
 async def delete_media(file_id: str, authorized: bool = Depends(verify_admin)):
     if not authorized:
         raise HTTPException(status_code=401)
-    fs.delete(file_id)
-    return {"status": "success"}
+    try:
+        from bson.objectid import ObjectId
+        fs.delete(ObjectId(file_id))
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/media/{filename:path}")
