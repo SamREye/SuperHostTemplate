@@ -12,7 +12,7 @@
       "@type": "BlogPosting",
       "headline": "{{ title }}",
       "description": "{{ description }}",
-      "image": "https://{{ request.headers.get('host') }}/{{ image | replace('/', '', 1) if image.startswith('/') else image }}",
+      "image": "https://{{ domain }}/{{ image | replace('/', '', 1) if image.startswith('/') else image }}",
       "articleBody": "{{ content | striptags }}",
       "datePublished": "{{ page.created_at.isoformat() if page.created_at else '' }}",
       "dateModified": "{{ page.modified_at.isoformat() if page.modified_at else '' }}"
