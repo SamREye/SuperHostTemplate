@@ -100,7 +100,8 @@ async function setArticleAttributes() {
             },
             body: JSON.stringify({content})
         });
-        const data = await response.json();
+        const text = await response.json();
+        const data = JSON.parse(text);
 
         if (data.title) document.querySelector('input[name="field_title"]').value = data.title;
         if (data.description) document.querySelector('textarea[name="field_description"]').value = data.description;
