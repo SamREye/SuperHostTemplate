@@ -352,7 +352,7 @@ async def read_root():
 
 
 @app.get("/page/{path:path}", response_class=HTMLResponse)
-async def get_page(path: str):
+async def get_page(path: str, request: Request):
     page = db.pages.find_one({"path": path})
     if not page:
         raise HTTPException(status_code=404, detail="Page not found")
