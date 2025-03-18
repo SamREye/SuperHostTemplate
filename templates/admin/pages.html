@@ -1,137 +1,112 @@
+{% extends "admin/base.html" %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Manage Pages</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container mt-5">
-        <h1>Manage Pages</h1>
-        <button class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#newPageModal">
-            ➕ New Page
-        </button>
-        <div class="list-group">
-            {% for page in pages %}
-            <div class="list-group-item">
-                <h5>{{ page.path }}</h5>
-                <p>Template: {{ page.template }}</p>
-                <button class="btn btn-sm btn-primary" onclick="editPage('{{ page._id }}')">✏️ Edit</button>
-                <button class="btn btn-sm btn-danger">🗑️ Delete</button>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <!-- New Page Modal -->
-        <div class="modal fade" id="newPageModal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">New Page</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form method="POST" id="newPageForm">
-                            <div class="mb-3">
-                                <label class="form-label">Path</label>
-                                <input type="text" name="path" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Template</label>
-                                <select name="template" class="form-control" onchange="loadTemplateFields()" required>
-                                    <option value="">Select template...</option>
-                                    {% for template in templates %}
-                                    <option value="{{ template }}">{{ template }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div id="dynamicFields"></div>
-                            <button type="submit" class="btn btn-primary">Create</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+{% block title %}Manage Pages{% endblock %}
 
-        <!-- Edit Page Modal -->
-        <div class="modal fade" id="editPageModal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Edit Page</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+{% block content %}
+<h1>Manage Pages</h1>
+<button class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#newPageModal">
+    ➕ New Page
+</button>
+<div class="list-group">
+    {% for page in pages %}
+    <div class="list-group-item">
+        <h5>{{ page.path }}</h5>
+        <p>Template: {{ page.template }}</p>
+        <button class="btn btn-sm btn-primary" onclick="editPage('{{ page._id }}')">✏️ Edit</button>
+        <button class="btn btn-sm btn-danger">🗑️ Delete</button>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- New Page Modal -->
+<div class="modal fade" id="newPageModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Page</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="newPageForm">
+                    <div class="mb-3">
+                        <label class="form-label">Path</label>
+                        <input type="text" name="path" class="form-control" required>
                     </div>
-                    <div class="modal-body">
-                        <form method="POST" id="editPageForm">
-                            <input type="hidden" name="_id" id="editPageId">
-                            <div class="mb-3">
-                                <label class="form-label">Path</label>
-                                <input type="text" name="path" class="form-control" disabled>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Template</label>
-                                <input type="text" name="template" class="form-control" disabled>
-                            </div>
-                            <div id="editDynamicFields"></div>
-                            <button type="submit" class="btn btn-primary">Save</button>
-                        </form>
+                    <div class="mb-3">
+                        <label class="form-label">Template</label>
+                        <select name="template" class="form-control" required onchange="loadTemplateFields(this.value)">
+                            <option value="">Select template</option>
+                            {% for template in templates %}
+                            <option value="{{ template }}">{{ template }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                </div>
+                    <div id="dynamicFields"></div>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-    async function loadTemplateFields() {
-        const template = document.querySelector('select[name="template"]').value;
-        const response = await fetch(`/admin/template-fields/${template}`);
-        const fields = await response.json();
-        
-        const container = document.getElementById('dynamicFields');
-        container.innerHTML = '';
-        
-        fields.forEach(field => {
-            container.innerHTML += `
-                <div class="mb-3">
-                    <label class="form-label">${field}</label>
-                    <input type="text" name="field_${field}" class="form-control" required>
-                </div>
-            `;
-        });
-    }
+<!-- Edit Page Modal -->
+<div class="modal fade" id="editPageModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Page</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="editPageForm">
+                    <div id="editDynamicFields"></div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-    async function editPage(id) {
-        const response = await fetch(`/admin/pages/${id}`);
-        const page = await response.json();
-        
-        const form = document.getElementById('editPageForm');
-        form.querySelector('input[name="_id"]').value = page._id;
-        form.querySelector('input[name="path"]').value = page.path;
-        form.querySelector('input[name="template"]').value = page.template;
-        
-        const container = document.getElementById('editDynamicFields');
-        container.innerHTML = '';
-        
-        // Get template fields
-        fetch(`/admin/template-fields/${page.template}`)
-            .then(response => response.json())
-            .then(fields => {
-                fields.forEach(field => {
-                    const value = page.content[field] || '';
-                    container.innerHTML += `
-                        <div class="mb-3">
-                            <label class="form-label">${field}</label>
-                            <input type="text" name="field_${field}" value="${value}" class="form-control" required>
-                        </div>
-                    `;
-                });
+<script>
+async function loadTemplateFields(template) {
+    const response = await fetch(`/admin/template-fields/${template}`);
+    const fields = await response.json();
+    const container = document.getElementById('dynamicFields');
+    container.innerHTML = '';
+    fields.forEach(field => {
+        container.innerHTML += `
+            <div class="mb-3">
+                <label class="form-label">${field}</label>
+                <input type="text" name="field_${field}" class="form-control" required>
+            </div>
+        `;
+    });
+}
+
+async function editPage(id) {
+    const response = await fetch(`/admin/pages/${id}`);
+    const page = await response.json();
+    const form = document.getElementById('editPageForm');
+    form.action = `/admin/pages/${id}`;
+
+    const container = document.getElementById('editDynamicFields');
+    container.innerHTML = '';
+
+    fetch(`/admin/template-fields/${page.template}`)
+        .then(response => response.json())
+        .then(fields => {
+            fields.forEach(field => {
+                const value = page.content[field] || '';
+                container.innerHTML += `
+                    <div class="mb-3">
+                        <label class="form-label">${field}</label>
+                        <input type="text" name="field_${field}" value="${value}" class="form-control" required>
+                    </div>
+                `;
             });
-        
-        new bootstrap.Modal(document.getElementById('editPageModal')).show();
-    }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+        });
+
+    new bootstrap.Modal(document.getElementById('editPageModal')).show();
+}
+</script>
+{% endblock %}
