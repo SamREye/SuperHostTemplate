@@ -14,20 +14,26 @@ import base64
 
 app = FastAPI()
 client = MongoClient(os.getenv("MONGO_URL"))
-db = client[os.getenv("DOMAIN_NAME")]
+domain = os.getenv("DOMAIN_NAME")
+db_name = domain.replace('.', '-')
+db = client[db_name]
 
 # Setup Jinja2 templates
 templates = Environment(loader=FileSystemLoader("templates"))
 fs = GridFS(db)
 
+
 def verify_admin(session: Optional[str] = Cookie(None)) -> bool:
     if not session:
         return False
-    return session == base64.b64encode(os.getenv("ADMIN_PASSWORD").encode()).decode()
+    return session == base64.b64encode(
+        os.getenv("ADMIN_PASSWORD").encode()).decode()
+
 
 @app.get("/login")
 async def login_page():
     return templates.get_template("login.html").render()
+
 
 @app.post("/login")
 async def login(password: str = Form(...)):
@@ -38,11 +44,13 @@ async def login(password: str = Form(...)):
         return response
     raise HTTPException(status_code=401)
 
+
 @app.get("/admin")
 async def admin_dashboard(authorized: bool = Depends(verify_admin)):
     if not authorized:
         return RedirectResponse(url="/login")
     return templates.get_template("admin.html").render()
+
 
 @app.get("/admin/pages")
 async def list_pages(authorized: bool = Depends(verify_admin)):
@@ -51,15 +59,14 @@ async def list_pages(authorized: bool = Depends(verify_admin)):
     pages = list(db.pages.find())
     return templates.get_template("pages.html").render(pages=pages)
 
+
 @app.post("/admin/pages")
-async def create_page(
-    authorized: bool = Depends(verify_admin),
-    path: str = Form(...),
-    title: str = Form(...),
-    description: str = Form(...),
-    template: str = Form(...),
-    content: str = Form(...)
-):
+async def create_page(authorized: bool = Depends(verify_admin),
+                      path: str = Form(...),
+                      title: str = Form(...),
+                      description: str = Form(...),
+                      template: str = Form(...),
+                      content: str = Form(...)):
     if not authorized:
         return RedirectResponse(url="/login")
     db.pages.insert_one({
@@ -72,6 +79,7 @@ async def create_page(
     })
     return RedirectResponse(url="/admin/pages", status_code=302)
 
+
 @app.get("/admin/media")
 async def list_media(authorized: bool = Depends(verify_admin)):
     if not authorized:
@@ -79,15 +87,15 @@ async def list_media(authorized: bool = Depends(verify_admin)):
     files = fs.find()
     return templates.get_template("media.html").render(files=files)
 
+
 @app.post("/admin/media")
-async def upload_media(
-    authorized: bool = Depends(verify_admin),
-    file: UploadFile = File(...)
-):
+async def upload_media(authorized: bool = Depends(verify_admin),
+                       file: UploadFile = File(...)):
     if not authorized:
         return RedirectResponse(url="/login")
     file_id = fs.put(file.file, filename=file.filename)
     return RedirectResponse(url="/admin/media", status_code=302)
+
 
 @app.delete("/admin/media/{file_id}")
 async def delete_media(file_id: str, authorized: bool = Depends(verify_admin)):
@@ -96,19 +104,18 @@ async def delete_media(file_id: str, authorized: bool = Depends(verify_admin)):
     fs.delete(file_id)
     return {"status": "success"}
 
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
 
 @app.get("/page/{path:path}", response_class=HTMLResponse)
 async def get_page(path: str):
     page = db.pages.find_one({"path": path})
     if not page:
         raise HTTPException(status_code=404, detail="Page not found")
-    
-    template = templates.get_template("base.html")
-    return template.render(
-        title=page.get("title", "Page"),
-        content=page.get("content", {})
-    )
 
+    template = templates.get_template("base.html")
+    return template.render(title=page.get("title", "Page"),
+                           content=page.get("content", {}))
