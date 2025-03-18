@@ -141,6 +141,7 @@ async def update_page(request: Request,
     if not authorized:
         return RedirectResponse(url="/login")
 
+    from bson.objectid import ObjectId
     form = await request.form()
     content = {}
     pending_image_url = None
