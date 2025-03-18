@@ -27,7 +27,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form method="POST" id="newPageForm">
+                <form method="POST" id="newPageForm" onsubmit="return handleSubmit(this)">
+                    <div class="alert alert-info d-none" id="saveSpinner">
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                        Saving page...
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Path</label>
                         <input type="text" name="path" class="form-control" required>
@@ -137,6 +141,12 @@ async function generateImage() {
         btn.disabled = false;
         spinner.classList.add('d-none');
     }
+}
+
+function handleSubmit(form) {
+    const spinner = document.getElementById('saveSpinner');
+    spinner.classList.remove('d-none');
+    return true;
 }
 
 async function editPage(id) {
