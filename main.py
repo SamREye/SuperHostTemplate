@@ -384,6 +384,32 @@ async def blog_index():
     )
 
 
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc: HTTPException):
+    template = templates.get_template("error.html")
+    return HTMLResponse(
+        content=template.render(
+            title="Page Not Found",
+            error_message="The page you're looking for doesn't exist.",
+            domain=domain,
+            breadcrumbs=[{"name": "Home", "path": "/"}, {"name": "Error", "path": "#"}]
+        ),
+        status_code=404
+    )
+
+@app.exception_handler(500)
+async def server_error_handler(request: Request, exc: Exception):
+    template = templates.get_template("error.html")
+    return HTMLResponse(
+        content=template.render(
+            title="Server Error",
+            error_message="An unexpected error occurred.",
+            domain=domain,
+            breadcrumbs=[{"name": "Home", "path": "/"}, {"name": "Error", "path": "#"}]
+        ),
+        status_code=500
+    )
+
 @app.get("/page/{path:path}", response_class=HTMLResponse)
 async def get_page(path: str, request: Request):
     page = db.pages.find_one({"path": path})
