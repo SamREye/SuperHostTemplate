@@ -1,29 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ title }}</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+{% extends "base.html" %}
 
-    <meta name="description" content="{{ description }}">
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BlogPosting",
-      "headline": "{{ title }}",
-      "description": "{{ description }}",
-      "image": "https://{{ domain }}/{{ image | replace('/', '', 1) if image.startswith('/') else image }}",
-      "articleBody": "{{ content | striptags }}",
-      "datePublished": "{{ page.created_at.isoformat() if page.created_at else '' }}",
-      "dateModified": "{{ page.modified_at.isoformat() if page.modified_at else '' }}"
-    }
-    </script>
-</head>
-<body>
-    <main>
-        <h1>{{ title }}</h1>
-        <img src="{{ image }}" alt="{{ title }}">
-        {{ content | markdown | safe }}
-    </main>
-</body>
-</html>
+{% block content %}
+<article style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    <h1>{{ title }}</h1>
+    <img src="{{ image }}" alt="{{ title }}" style="max-width: 100%; height: auto;">
+    {{ content | markdown | safe }}
+</article>
+{% endblock %}

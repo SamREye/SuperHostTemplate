@@ -1,25 +1,6 @@
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ title }}</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="{{ description }}">
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "url": "https://{{ domain }}/",
-      "name": "{{ title }}",
-      "description": "{{ description }}"
-    }
-    </script>
-</head>
-<body>
-    <main>
-        <h1>Home Page</h1>
-        <p>This is the home page.</p>
-    </main>
-</body>
-</html>
+{% block content %}
+<h1>Home Page</h1>
+<p>This is the home page.</p>
+{% endblock %}

@@ -1,41 +1,35 @@
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ title }}</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="{{ description }}">
-    <style>
-        .blog-list {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .blog-item {
-            margin-bottom: 2em;
-        }
-        .blog-item img {
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
-</head>
-<body>
-    <main class="blog-list">
-        <h1>{{ title }}</h1>
-        {% for article in articles %}
-        <article class="blog-item">
-            <h2><a href="/page/{{ article.path }}">{{ article.content.title }}</a></h2>
-            <p>{{ article.content.description }}</p>
-            {% if article.content.image %}
-            <img src="{{ article.content.image }}" alt="{{ article.content.title }}">
-            {% endif %}
-            <time datetime="{{ article.created_at.isoformat() }}">
-                {{ article.created_at.strftime('%B %d, %Y') }}
-            </time>
-        </article>
-        {% endfor %}
-    </main>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="blog-list">
+    <h1>{{ title }}</h1>
+    {% for article in articles %}
+    <article class="blog-item">
+        <h2><a href="/page/{{ article.path }}">{{ article.content.title }}</a></h2>
+        <p>{{ article.content.description }}</p>
+        {% if article.content.image %}
+        <img src="{{ article.content.image }}" alt="{{ article.content.title }}">
+        {% endif %}
+        <time datetime="{{ article.created_at.isoformat() }}">
+            {{ article.created_at.strftime('%B %d, %Y') }}
+        </time>
+    </article>
+    {% endfor %}
+</div>
+
+<style>
+    .blog-list {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .blog-item {
+        margin-bottom: 2em;
+    }
+    .blog-item img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+{% endblock %}
