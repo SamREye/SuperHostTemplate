@@ -354,6 +354,21 @@ async def read_root():
         domain=domain
     ))
 
+@app.get("/blog", response_class=HTMLResponse)
+async def blog_index():
+    articles = list(db.pages.find({
+        "template": "article.html",
+        "path": {"$regex": "^blog/"}
+    }).sort("created_at", -1))
+    
+    template = templates.get_template("pages/blog.html")
+    return template.render(
+        title="Blog",
+        description="Latest blog posts",
+        articles=articles,
+        domain=domain
+    )
+
 
 @app.get("/page/{path:path}", response_class=HTMLResponse)
 async def get_page(path: str, request: Request):
