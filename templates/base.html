@@ -5,8 +5,33 @@
     <title>{{ title }}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {% for item in breadcrumbs %}
+        {
+          "@type": "ListItem",
+          "position": {{ loop.index }},
+          "name": "{{ item.name }}",
+          "item": "https://{{ domain }}{{ item.path }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }
+    </script>
 </head>
 <body>
+    <nav>
+        {% for item in breadcrumbs %}
+            {% if not loop.last %}
+                <a href="{{ item.path }}">{{ item.name }}</a> /
+            {% else %}
+                <span>{{ item.name }}</span>
+            {% endif %}
+        {% endfor %}
+    </nav>
     <main>
         {% block content %}{% endblock %}
     </main>

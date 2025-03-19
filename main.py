@@ -349,10 +349,14 @@ async def complement_article(content: dict,
 @app.get("/")
 async def read_root():
     template = templates.get_template("index.html")
+    breadcrumbs = [{"name": "Home", "path": "/"}]
     return HTMLResponse(
-        template.render(title=f"{domain} - Home",
-                        description="Welcome to our website",
-                        domain=domain))
+        template.render(
+            title=f"{domain} - Home",
+            description="Welcome to our website",
+            domain=domain,
+            breadcrumbs=breadcrumbs
+        ))
 
 
 @app.get("/blog", response_class=HTMLResponse)
@@ -365,11 +369,19 @@ async def blog_index():
             }
         }).sort("created_at", -1))
 
+    breadcrumbs = [
+        {"name": "Home", "path": "/"},
+        {"name": "Blog", "path": "/blog"}
+    ]
+    
     template = templates.get_template("blog.html")
-    return template.render(title="Blog",
-                           description="Latest blog posts",
-                           articles=articles,
-                           domain=domain)
+    return template.render(
+        title="Blog",
+        description="Latest blog posts",
+        articles=articles,
+        domain=domain,
+        breadcrumbs=breadcrumbs
+    )
 
 
 @app.get("/page/{path:path}", response_class=HTMLResponse)
@@ -377,9 +389,24 @@ async def get_page(path: str, request: Request):
     page = db.pages.find_one({"path": path})
     if not page:
         raise HTTPException(status_code=404, detail="Page not found")
+    
+    # Build breadcrumbs based on path
+    parts = path.split('/')
+    breadcrumbs = [{"name": "Home", "path": "/"}]
+    current_path = ""
+    for part in parts:
+        current_path += f"/{part}"
+        breadcrumbs.append({
+            "name": part.replace('-', ' ').title(),
+            "path": f"/page{current_path}"
+        })
+    
     template_file = f"pages/{page['template']}"
     template = templates.get_template(template_file)
-    return template.render(page=page,
-                           request=request,
-                           domain=domain,
-                           **page["content"])
+    return template.render(
+        page=page,
+        request=request,
+        domain=domain,
+        breadcrumbs=breadcrumbs,
+        **page["content"]
+    )
