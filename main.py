@@ -52,7 +52,8 @@ async def get_sitemap():
 
 # Setup Jinja2 templates
 templates = Environment(loader=FileSystemLoader("templates"))
-templates.filters["markdown"] = lambda text: markdown2.markdown(text) if text is not None else ""
+templates.filters["markdown"] = lambda text: markdown2.markdown(
+    text) if text is not None else ""
 fs = GridFS(db)
 
 
@@ -178,6 +179,7 @@ async def delete_page(id: str, authorized: bool = Depends(verify_admin)):
         raise HTTPException(status_code=404, detail="Page not found")
     return {"status": "success"}
 
+
 @app.post("/admin/pages/{id}")
 async def update_page(request: Request,
                       id: str,
@@ -219,14 +221,11 @@ async def update_page(request: Request,
 
     from bson.objectid import ObjectId
     db.pages.update_one(
-        {"_id": ObjectId(id)}, 
-        {
-            "$set": {
-                "content": content,
-                "modified_at": datetime.utcnow()
-            }
-        }
-    )
+        {"_id": ObjectId(id)},
+        {"$set": {
+            "content": content,
+            "modified_at": datetime.utcnow()
+        }})
     return RedirectResponse(url="/admin/pages", status_code=302)
     return RedirectResponse(url="/admin/pages", status_code=302)
 
@@ -336,8 +335,10 @@ async def generate_image(prompt: dict):
     from prompting import generate_image
     return generate_image(prompt["prompt"])
 
+
 @app.post("/admin/complement_article")
-async def complement_article(content: dict, authorized: bool = Depends(verify_admin)):
+async def complement_article(content: dict,
+                             authorized: bool = Depends(verify_admin)):
     if not authorized:
         raise HTTPException(status_code=401)
     from prompting import complement_article
@@ -348,26 +349,27 @@ async def complement_article(content: dict, authorized: bool = Depends(verify_ad
 @app.get("/")
 async def read_root():
     template = templates.get_template("index.html")
-    return HTMLResponse(template.render(
-        title=f"{domain} - Home",
-        description="Welcome to our website",
-        domain=domain
-    ))
+    return HTMLResponse(
+        template.render(title=f"{domain} - Home",
+                        description="Welcome to our website",
+                        domain=domain))
+
 
 @app.get("/blog", response_class=HTMLResponse)
 async def blog_index():
-    articles = list(db.pages.find({
-        "template": "article.html",
-        "path": {"$regex": "^blog/"}
-    }).sort("created_at", -1))
-    
-    template = templates.get_template("pages/blog.html")
-    return template.render(
-        title="Blog",
-        description="Latest blog posts",
-        articles=articles,
-        domain=domain
-    )
+    articles = list(
+        db.pages.find({
+            "template": "article.html",
+            "path": {
+                "$regex": "^blog/"
+            }
+        }).sort("created_at", -1))
+
+    template = templates.get_template("blog.html")
+    return template.render(title="Blog",
+                           description="Latest blog posts",
+                           articles=articles,
+                           domain=domain)
 
 
 @app.get("/page/{path:path}", response_class=HTMLResponse)
@@ -377,4 +379,7 @@ async def get_page(path: str, request: Request):
         raise HTTPException(status_code=404, detail="Page not found")
     template_file = f"pages/{page['template']}"
     template = templates.get_template(template_file)
-    return template.render(page=page, request=request, domain=domain, **page["content"])
+    return template.render(page=page,
+                           request=request,
+                           domain=domain,
+                           **page["content"])
